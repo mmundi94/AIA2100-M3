@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Ethics Review Lab | AIA2100 Practice Activity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1c1528;
+  --ink-soft:#4a4058;
+  --card:#fffcf6;
+  --line:rgba(28,21,40,.14);
+  --plum:#741b47;
+  --yellow:#FFFF02;
+  --coral:#ff5a4e;
+  --tangerine:#ff9f1c;
+  --jade:#00a37a;
+  --cerulean:#1c8ee6;
+  --orchid:#d6336c;
+  --radius:22px;
+  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--ink);
+  min-height:100vh;
+  line-height:1.55;
+  background:
+    radial-gradient(900px 600px at -10% -10%, #ffb4a2 0%, transparent 60%),
+    radial-gradient(800px 600px at 110% 0%, #ffd166 0%, transparent 55%),
+    radial-gradient(900px 700px at 100% 100%, #7fd8c1 0%, transparent 55%),
+    radial-gradient(800px 700px at 0% 100%, #a8d4ff 0%, transparent 55%),
+    #ffe8dc;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:var(--grain);opacity:.33;mix-blend-mode:multiply;
+}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1,h2,h3,.display{font-family:"Bricolage Grotesque","Figtree",system-ui,sans-serif;letter-spacing:-.01em}
+
+/* Header */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.brand{font-weight:700;font-size:.9rem;color:var(--ink)}
+.brand span{color:var(--ink-soft);font-weight:500}
+.badge{display:inline-flex;align-items:center;gap:7px;background:var(--yellow);color:var(--ink);font-weight:700;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;padding:6px 13px;border-radius:999px;box-shadow:0 0 0 2px var(--ink) inset}
+.hero{
+  position:relative;overflow:hidden;border-radius:28px;padding:30px 30px 26px;color:#fff;margin-bottom:18px;
+  background:linear-gradient(120deg,var(--plum) 0%,#b0245e 45%,var(--coral) 100%);
+  box-shadow:0 18px 40px -18px rgba(116,27,71,.6);
+}
+.hero::after{content:"";position:absolute;inset:0;background-image:var(--grain);opacity:.45;mix-blend-mode:overlay;pointer-events:none}
+.hero h1{font-size:clamp(1.8rem,4vw,2.7rem);font-weight:800;line-height:1.08;position:relative;z-index:1}
+.hero h1 mark{background:var(--yellow);color:var(--ink);padding:0 .18em;border-radius:8px}
+.hero p{max-width:760px;margin-top:10px;font-size:1.02rem;opacity:.95;position:relative;z-index:1}
+.blob{position:absolute;border-radius:50%;filter:blur(2px);opacity:.55}
+.blob.b1{width:220px;height:220px;right:-50px;top:-60px;background:var(--tangerine)}
+.blob.b2{width:140px;height:140px;right:140px;bottom:-70px;background:var(--cerulean)}
+
+/* Progress rail */
+.rail{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.rail button{
+  font:inherit;font-size:.84rem;font-weight:600;border:0;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;border-radius:999px;
+  background:rgba(255,252,246,.78);color:var(--ink-soft);box-shadow:0 0 0 1.5px var(--line) inset;backdrop-filter:blur(4px);
+}
+.rail button .n{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#efe6dc;color:var(--ink);font-size:.76rem;font-weight:700}
+.rail button.done .n{background:var(--jade);color:#fff}
+.rail button.current{background:var(--ink);color:#fff;box-shadow:none}
+.rail button.current .n{background:var(--yellow);color:var(--ink)}
+.rail button:disabled{cursor:not-allowed;opacity:.55}
+.rail button:focus-visible,.btn:focus-visible,.opt:focus-visible,.sw:focus-visible,select:focus-visible,input[type=range]:focus-visible{outline:3px solid var(--cerulean);outline-offset:2px}
+
+/* Layout */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:1fr}.panel{position:static!important}}
+
+.card{background:var(--card);border-radius:var(--radius);box-shadow:0 0 0 1.5px var(--line),0 14px 34px -20px rgba(28,21,40,.45);overflow:hidden}
+.stage{display:none}
+.stage.active{display:block;animation:rise .35s ease}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.band{position:relative;display:flex;align-items:center;gap:14px;padding:18px 22px;color:#fff}
+.band::after{content:"";position:absolute;inset:0;background-image:var(--grain);opacity:.5;mix-blend-mode:overlay;pointer-events:none}
+.band .ic{flex:0 0 52px;height:52px;border-radius:16px;background:rgba(255,255,255,.18);display:grid;place-items:center;position:relative;z-index:1}
+.band .ic svg{width:30px;height:30px}
+.band .t{position:relative;z-index:1}
+.band small{display:block;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;opacity:.9}
+.band h2{font-size:1.45rem;font-weight:800;line-height:1.15}
+.g-brief{background:linear-gradient(115deg,var(--plum),var(--orchid))}
+.g-data{background:linear-gradient(115deg,#0f6fb8,var(--jade))}
+.g-score{background:linear-gradient(115deg,var(--coral),var(--tangerine))}
+.g-open{background:linear-gradient(115deg,var(--jade),#12b5a3 50%,var(--cerulean))}
+.g-gov{background:linear-gradient(115deg,var(--plum),#3f5bd6)}
+.g-dec{background:linear-gradient(115deg,#e0475b,var(--tangerine))}
+.g-sum{background:linear-gradient(115deg,var(--ink),var(--plum))}
+
+.body{padding:22px}
+.body > p{margin-bottom:12px}
+.lead{font-size:1.04rem}
+.kicker{font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--plum);margin:18px 0 8px}
+.hint{font-size:.9rem;color:var(--ink-soft)}
+
+/* System card */
+.syscard{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+@media (max-width:640px){.syscard{grid-template-columns:1fr}}
+.tile{border-radius:16px;padding:14px 16px;background:#fff;box-shadow:0 0 0 1.5px var(--line)}
+.tile h3{font-size:1rem;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.tile ul{padding-left:18px}
+.tile li{margin:3px 0;font-size:.94rem}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.concerns{background:linear-gradient(135deg,#fff3d6,#ffe1db);box-shadow:0 0 0 1.5px rgba(255,90,78,.35)}
+
+/* Switches */
+.inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.inputs{grid-template-columns:1fr}}
+.sw{
+  font:inherit;text-align:left;cursor:pointer;border:0;display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:16px;background:#fff;box-shadow:0 0 0 1.5px var(--line);transition:.18s;
+}
+.sw .lbl{font-weight:600;font-size:.94rem;display:block}
+.sw .tag{font-size:.74rem;color:var(--ink-soft);display:block;margin-top:2px}
+.sw .knob{flex:0 0 46px;height:26px;border-radius:999px;background:#d9d0c7;position:relative;transition:.18s}
+.sw .knob::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.18s}
+.sw[aria-checked="true"]{box-shadow:0 0 0 2px var(--jade)}
+.sw[aria-checked="true"] .knob{background:var(--jade)}
+.sw[aria-checked="true"] .knob::after{left:23px}
+
+/* Options */
+.opts{display:grid;gap:10px}
+.opts.two{grid-template-columns:1fr 1fr}
+@media (max-width:640px){.opts.two{grid-template-columns:1fr}}
+.opt{
+  font:inherit;text-align:left;cursor:pointer;border:0;border-radius:16px;padding:13px 15px;background:#fff;
+  box-shadow:0 0 0 1.5px var(--line);display:flex;gap:12px;align-items:flex-start;transition:.18s;color:var(--ink)
+}
+.opt:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 0 0 1.5px var(--ink-soft)}
+.opt .mk{flex:0 0 22px;height:22px;border-radius:7px;box-shadow:0 0 0 2px var(--ink-soft) inset;margin-top:2px;display:grid;place-items:center}
+.opt.round .mk{border-radius:50%}
+.opt[aria-pressed="true"],.opt[aria-checked="true"]{background:#fffdc2;box-shadow:0 0 0 2.5px var(--ink)}
+.opt[aria-pressed="true"] .mk,.opt[aria-checked="true"] .mk{background:var(--ink);box-shadow:none}
+.opt[aria-pressed="true"] .mk::after,.opt[aria-checked="true"] .mk::after{content:"";width:8px;height:8px;border-radius:2px;background:var(--yellow)}
+.opt b{display:block;font-size:.96rem}
+.opt span.d{font-size:.86rem;color:var(--ink-soft)}
+.opt:disabled{cursor:default}
+
+/* Checkpoint */
+.checkpoint{margin-top:20px;border-radius:18px;padding:16px;background:linear-gradient(135deg,#eef6ff,#f1fff7);box-shadow:0 0 0 1.5px rgba(28,142,230,.35)}
+.checkpoint .cph{display:flex;align-items:center;gap:8px;font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#0f6fb8;margin-bottom:6px}
+.checkpoint h3{font-size:1.08rem;margin-bottom:10px}
+.recorded{display:none;margin-top:10px;font-weight:600;font-size:.9rem;align-items:center;gap:8px}
+.recorded.show{display:flex}
+.recorded i{font-style:normal;background:var(--yellow);padding:2px 10px;border-radius:999px;box-shadow:0 0 0 1.5px var(--ink) inset}
+
+/* Slider */
+.slider{padding:16px;border-radius:18px;background:#fff;box-shadow:0 0 0 1.5px var(--line)}
+.slider .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.slider output{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.6rem;color:var(--coral)}
+input[type=range]{width:100%;margin:12px 0 4px;accent-color:var(--coral);height:28px}
+.scale{display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-soft)}
+
+/* Flag bars */
+.flags{margin-top:14px;display:grid;gap:10px}
+.fb .fl{display:flex;justify-content:space-between;font-size:.86rem;font-weight:600;margin-bottom:4px}
+.fb .tr{height:14px;border-radius:999px;background:#efe6dc;overflow:hidden}
+.fb .fi{height:100%;border-radius:999px;transition:width .45s ease}
+
+/* Governance */
+.govrow{display:grid;grid-template-columns:1fr 1.1fr;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;background:#fff;box-shadow:0 0 0 1.5px var(--line);margin-bottom:10px}
+@media (max-width:640px){.govrow{grid-template-columns:1fr}}
+.govrow b{font-size:.96rem}
+.govrow span{display:block;font-size:.84rem;color:var(--ink-soft)}
+select{font:inherit;font-size:.92rem;padding:10px 12px;border-radius:12px;border:0;box-shadow:0 0 0 1.5px var(--ink-soft) inset;background:#fffdf4;color:var(--ink);width:100%}
+
+/* Nav */
+.nav{display:flex;justify-content:space-between;gap:10px;padding:16px 22px 22px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:700;font-size:.95rem;border:0;cursor:pointer;border-radius:999px;padding:12px 22px;transition:.18s;display:inline-flex;align-items:center;gap:8px}
+.btn.primary{background:var(--ink);color:#fff}
+.btn.primary:hover:not(:disabled){background:var(--plum)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:0 0 0 1.5px var(--ink) inset}
+.btn.accent{background:var(--yellow);color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.need{font-size:.86rem;color:var(--ink-soft);align-self:center}
+
+/* Panel */
+.panel{position:sticky;top:14px}
+.panel .ph{padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between}
+.panel .ph h3{font-size:1.08rem}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--jade)}
+.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--jade);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.meters{padding:4px 18px 16px;display:grid;gap:12px}
+.m .ml{display:flex;justify-content:space-between;align-items:baseline;font-size:.86rem;font-weight:600}
+.m .ml em{font-style:normal;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1rem}
+.m .tr{height:10px;border-radius:999px;background:#efe6dc;overflow:hidden;margin-top:4px}
+.m .fi{height:100%;border-radius:999px;transition:width .45s ease}
+.m.load .ml{color:var(--ink-soft)}
+.pfoot{padding:12px 18px 16px;border-top:1.5px dashed var(--line);font-size:.82rem;color:var(--ink-soft)}
+.mini{padding:0 18px 12px;display:grid;gap:8px}
+
+/* Summary */
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.sumgrid{grid-template-columns:1fr}}
+.sumgrid .tile h3{font-size:.98rem}
+.rec{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
+.rec:last-child{border-bottom:0}
+.pill{font-size:.76rem;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap;align-self:flex-start;height:fit-content}
+.pill.ok{background:#d5f5ea;color:#05664d}
+.pill.no{background:#ffe0dc;color:#9c1f16}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;transition:.3s;z-index:10}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">Nexford University <span>· AIA2100 Introduction to AI · Module 3</span></div>
+    <div class="badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l2.6 6.9L22 9.8l-5.6 4.8L18 22l-6-3.8L6 22l1.6-7.4L2 9.8l7.4-.9z" fill="currentColor"/></svg>
+      Practice Activity
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="blob b1"></div><div class="blob b2"></div>
+    <h1>AI Ethics <mark>Review</mark> Lab</h1>
+    <p>Crestview State University wants to expand its AI early-alert system to every college. As chair of the AI Review Committee, you will refine the system so it addresses bias, transparency, and accountability before it goes campus-wide. There are no right or wrong trade-offs. Three checkpoints record your answer after one attempt, and you can always move on.</p>
+  </header>
+
+  <nav class="rail" id="rail" aria-label="Activity progress"></nav>
+
+  <div class="grid">
+    <main>
+
+      <!-- STAGE 0: BRIEF -->
+      <section class="card stage" data-stage="0" aria-labelledby="h0">
+        <div class="band g-brief">
+          <div class="ic"><svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h11l6 6v18H8z"/><path d="M19 4v6h6"/><path d="M12 17h9M12 22h6"/><circle cx="25" cy="25" r="0.6" fill="#FFFF02" stroke="#FFFF02" stroke-width="3"/></svg></div>
+          <div class="t"><small>Step 1 of 7</small><h2 id="h0">Review the System Brief</h2></div>
+        </div>
+        <div class="body">
+          <p class="lead">Crestview State University, a fictional public university in the United States, piloted <b>PathAlert</b> in one college for a semester. PathAlert is an AI-driven advising system that analyzes student records and behavioral data to identify students at risk of dropping out.</p>
+          <div class="syscard">
+            <div class="tile">
+              <h3><span class="dot" style="background:var(--cerulean)"></span>How it works</h3>
+              <ul>
+                <li>Uses machine learning to give each student a risk score from 0 to 100.</li>
+                <li>Students above a set threshold are labeled "high risk."</li>
+                <li>Flagged students receive automated text messages about deadlines and support.</li>
+                <li>Leadership wants to use the score in scholarship renewal decisions.</li>
+              </ul>
+            </div>
+            <div class="tile">
+              <h3><span class="dot" style="background:var(--jade)"></span>Pilot results</h3>
+              <ul>
+                <li>More students received timely reminders about registration and financial aid.</li>
+                <li>Advisors reported faster identification of students needing support.</li>
+                <li>Leadership sees strong efficiency gains and wants to expand.</li>
+              </ul>
+            </div>
+            <div class="tile concerns" style="grid-column:1/-1">
+              <h3><span class="dot" style="background:var(--coral)"></span>Concerns raised in an internal review</h3>
+              <ul>
+                <li>Students from certain ZIP codes are flagged far more often than others.</li>
+                <li>Students were never told that AI was monitoring their data.</li>
+                <li>Flags arrive without any explanation of why a student was labeled.</li>
+                <li>No independent audit of the model's performance has taken place.</li>
+                <li>Some advisors act on scores without questioning them.</li>
+              </ul>
+            </div>
+          </div>
+          <p class="kicker">Your role</p>
+          <p>Your committee must refine PathAlert, not replace it. In the next steps, you will review its data inputs, decide how scores are used, strengthen transparency, and design a governance structure. The live System Readout panel shows how each decision changes the system.</p>
+        </div>
+        <div class="nav"><span></span><button class="btn primary" data-next>Start the review <span aria-hidden="true">→</span></button></div>
+      </section>
+
+      <!-- STAGE 1: DATA -->
+      <section class="card stage" data-stage="1" aria-labelledby="h1">
+        <div class="band g-data">
+          <div class="ic"><svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><ellipse cx="16" cy="7" rx="10" ry="3.5"/><path d="M6 7v9c0 1.9 4.5 3.5 10 3.5s10-1.6 10-3.5V7"/><path d="M6 16v9c0 1.9 4.5 3.5 10 3.5s10-1.6 10-3.5v-9"/><path d="M21 12l4 4" stroke="#FFFF02"/></svg></div>
+          <div class="t"><small>Step 2 of 7 · Bias and data governance</small><h2 id="h1">Audit the Data Inputs</h2></div>
+        </div>
+        <div class="body">
+          <p>AI models are shaped by their training data and inputs. If those inputs are flawed, incomplete, or biased, the outputs will be too. The vendor switched on every available input. Turn inputs on or off and watch how labeling accuracy, the flag gap between student groups, and privacy protection change.</p>
+          <div class="inputs" id="inputs"></div>
+          <div class="flags" id="flagsData"></div>
+          <div class="checkpoint" data-check="c1">
+            <div class="cph"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>Checkpoint 1 · One attempt</div>
+            <h3>Which input acts most strongly as an indirect stand-in for where students come from, creating the largest flag gap?</h3>
+            <div class="opts" role="group" aria-label="Checkpoint 1 options"></div>
+            <div class="recorded" aria-live="polite"><i>Response recorded</i> You can continue.</div>
+          </div>
+        </div>
+        <div class="nav"><button class="btn ghost" data-prev>← Back</button><div style="display:flex;gap:10px;align-items:center"><span class="need" data-need="c1">Answer the checkpoint to continue</span><button class="btn primary" data-next data-requires="c1">Continue <span aria-hidden="true">→</span></button></div></div>
+      </section>
+
+      <!-- STAGE 2: SCORES -->
+      <section class="card stage" data-stage="2" aria-labelledby="h2">
+        <div class="band g-score">
+          <div class="ic"><svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 22a11 11 0 0 1 22 0"/><path d="M16 22l6-7" stroke="#FFFF02"/><circle cx="16" cy="22" r="2" fill="#fff"/><path d="M8 26h16"/></svg></div>
+          <div class="t"><small>Step 3 of 7 · Human oversight</small><h2 id="h2">Decide How Scores Are Used</h2></div>
+        </div>
+        <div class="body">
+          <p>Machine learning systems recommend actions based on probability and pattern recognition. The threshold decides how many students are labeled "high risk," and the oversight model decides who acts on those labels.</p>
+          <div class="slider">
+            <div class="row"><label for="thr"><b>High-risk threshold</b><br><span class="hint">Students with a risk score above this value are flagged</span></label><output id="thrOut" for="thr">60</output></div>
+            <input type="range" id="thr" min="40" max="90" step="5" value="60" aria-describedby="thrScale">
+            <div class="scale" id="thrScale"><span>40 · flags more students</span><span>90 · flags fewer students</span></div>
+          </div>
+          <div class="flags" id="flagsScore"></div>
+
+          <p class="kicker">Outreach to flagged students</p>
+          <div class="opts" id="outreach" role="radiogroup" aria-label="Outreach model"></div>
+
+          <p class="kicker">Scholarship renewal decisions</p>
+          <div class="opts" id="scholar" role="radiogroup" aria-label="Scholarship use"></div>
+
+          <div class="checkpoint" data-check="c2">
+            <div class="cph"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>Checkpoint 2 · One attempt</div>
+            <h3>Which use of the PathAlert score most clearly requires a human to make the final decision?</h3>
+            <div class="opts" role="group" aria-label="Checkpoint 2 options"></div>
+            <div class="recorded" aria-live="polite"><i>Response recorded</i> You can continue.</div>
+          </div>
+        </div>
+        <div class="nav"><button class="btn ghost" data-prev>← Back</button><div style="display:flex;gap:10px;align-items:center"><span class="need" data-need="c2">Answer the checkpoint to continue</span><button class="btn primary" data-next data-requires="c2">Continue <span aria-hidden="true">→</span></button></div></div>
+      </section>
+
+      <!-- STAGE 3: TRANSPARENCY -->
+      <section class="card stage" data-stage="3" aria-labelledby="h3">
+        <div class="band g-open">
+          <div class="ic"><svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="24" height="18" rx="4"/><path d="M4 12h24"/><circle cx="16" cy="18" r="3.2" stroke="#FFFF02"/><path d="M11 28h10"/></svg></div>
+          <div class="t"><small>Step 4 of 7 · Transparency</small><h2 id="h3">Open Up the System</h2></div>
+        </div>
+        <div class="body">
+          <p>Students should understand that AI is monitoring patterns and generating recommendations, and staff must understand the model's limitations. Select every transparency measure you want to put in place. Each one adds some operational effort.</p>
+          <div class="opts" id="transp" role="group" aria-label="Transparency measures"></div>
+        </div>
+        <div class="nav"><button class="btn ghost" data-prev>← Back</button><button class="btn primary" data-next>Continue <span aria-hidden="true">→</span></button></div>
+      </section>
+
+      <!-- STAGE 4: GOVERNANCE -->
+      <section class="card stage" data-stage="4" aria-labelledby="h4">
+        <div class="band g-gov">
+          <div class="ic"><svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="16" cy="7" r="3.5"/><circle cx="7" cy="24" r="3.5"/><circle cx="25" cy="24" r="3.5"/><path d="M14 10l-5 11M18 10l5 11M10.5 24h11"/><circle cx="16" cy="18" r="1.6" fill="#FFFF02" stroke="none"/></svg></div>
+          <div class="t"><small>Step 5 of 7 · Accountability</small><h2 id="h4">Build the Governance Structure</h2></div>
+        </div>
+        <div class="body">
+          <p>Accountability must remain human-centered. Assign a responsible owner for each duty and choose how often performance is audited.</p>
+          <div id="gov"></div>
+          <p class="kicker">Performance audit schedule</p>
+          <div class="opts two" id="audit" role="radiogroup" aria-label="Audit schedule"></div>
+          <div class="checkpoint" data-check="c3">
+            <div class="cph"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>Checkpoint 3 · One attempt</div>
+            <h3>If PathAlert's classifications cause harm to students, where does responsibility ultimately lie?</h3>
+            <div class="opts" role="group" aria-label="Checkpoint 3 options"></div>
+            <div class="recorded" aria-live="polite"><i>Response recorded</i> You can continue.</div>
+          </div>
+        </div>
+        <div class="nav"><button class="btn ghost" data-prev>← Back</button><div style="display:flex;gap:10px;align-items:center"><span class="need" data-need="c3">Answer the checkpoint to continue</span><button class="btn primary" data-next data-requires="c3">Continue <span aria-hidden="true">→</span></button></div></div>
+      </section>
+
+      <!-- STAGE 5: DECISION -->
+      <section class="card stage" data-stage="5" aria-labelledby="h5">
+        <div class="band g-dec">
+          <div class="ic"><svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 29V17"/><path d="M16 17L8 8M16 17l8-9"/><path d="M5 9l3-1 1 3" /><path d="M27 9l-3-1-1 3"/><circle cx="16" cy="17" r="2" fill="#FFFF02" stroke="none"/></svg></div>
+          <div class="t"><small>Step 6 of 7 · Deployment</small><h2 id="h5">Make the Expansion Call</h2></div>
+        </div>
+        <div class="body">
+          <p>Review the System Readout panel. It reflects every refinement you made. Leadership now needs your committee's recommendation on how to proceed.</p>
+          <div class="opts" id="decision" role="radiogroup" aria-label="Expansion decision"></div>
+        </div>
+        <div class="nav"><button class="btn ghost" data-prev>← Back</button><div style="display:flex;gap:10px;align-items:center"><span class="need" data-need="decision">Choose a recommendation to continue</span><button class="btn primary" data-next data-requires="decision">See your review summary <span aria-hidden="true">→</span></button></div></div>
+      </section>
+
+      <!-- STAGE 6: SUMMARY -->
+      <section class="card stage" data-stage="6" aria-labelledby="h6">
+        <div class="band g-sum">
+          <div class="ic"><svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="16" cy="13" r="8"/><path d="M11 20l-2 9 7-3 7 3-2-9"/><path d="M12.5 13l2.5 2.5 4.5-5" stroke="#FFFF02"/></svg></div>
+          <div class="t"><small>Step 7 of 7</small><h2 id="h6">Your Review Summary</h2></div>
+        </div>
+        <div class="body">
+          <p>This is the refined version of PathAlert your committee designed. You can copy the decision log for your notes.</p>
+          <div class="sumgrid" id="summary"></div>
+        </div>
+        <div class="nav"><button class="btn ghost" data-prev>← Back</button><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn accent" id="copyLog">Copy decision log</button><button class="btn primary" id="restart">Start again</button></div></div>
+      </section>
+
+    </main>
+
+    <aside class="card panel" aria-labelledby="panelH">
+      <div class="ph"><h3 id="panelH">System Readout</h3><span class="live">Live</span></div>
+      <div class="meters" id="meters"></div>
+      <div class="mini" id="flagsPanel"></div>
+      <div class="pfoot">Values are simplified estimates for practice. Higher is stronger for every measure except advisor workload.</div>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STAGES = ["Brief","Data inputs","Score use","Transparency","Governance","Decision","Summary"];
+
+  var INPUTS = [
+    {id:"gpa",   label:"Academic performance trend", tag:"Academic record", acc:18, gap:1,  priv:1},
+    {id:"lms",   label:"Course platform activity",   tag:"Learning behavior", acc:12, gap:2, priv:2},
+    {id:"dead",  label:"Missed registration and aid deadlines", tag:"Administrative record", acc:14, gap:1, priv:1},
+    {id:"aid",   label:"Financial aid status",       tag:"Financial record", acc:8, gap:6, priv:3},
+    {id:"zip",   label:"Home ZIP code",              tag:"Location", acc:3, gap:14, priv:3},
+    {id:"first", label:"First-generation student status", tag:"Family background", acc:4, gap:10, priv:2},
+    {id:"work",  label:"Part-time work hours",       tag:"Personal schedule", acc:5, gap:5, priv:2},
+    {id:"social",label:"Public social media activity", tag:"Online behavior", acc:2, gap:4, priv:8}
+  ];
+
+  var OUTREACH = [
+    {id:"auto", t:"Automated messages only", d:"Every flagged student receives automated texts. Advisors are not involved.", acc:8, load:0.2},
+    {id:"hybrid", t:"Automated reminders, advisor review for high-risk flags", d:"Routine reminders stay automated. An advisor reviews each high-risk flag before any intervention.", acc:28, load:0.6},
+    {id:"full", t:"Advisor reviews every flag before contact", d:"No student is contacted until an advisor reviews the flag.", acc:36, load:1.0}
+  ];
+
+  var SCHOLAR = [
+    {id:"auto", t:"Score decides renewal automatically", d:"Students above the threshold lose renewal eligibility without review.", acc:0},
+    {id:"inform", t:"Score informs, the scholarship committee decides", d:"The score is one input. People make and document the final decision.", acc:28},
+    {id:"none", t:"Score is not used for scholarships", d:"PathAlert is limited to support outreach only.", acc:24}
+  ];
+
+  var TRANSP = [
+    {id:"notify", t:"Tell students AI is used", d:"Clear notice at enrollment that PathAlert analyzes their records.", v:20, e:4},
+    {id:"reasons", t:"Explain each flag", d:"Every flag lists the main factors behind the student's score.", v:24, e:8},
+    {id:"docs", t:"Document how scores are calculated", d:"Publish plain-language documentation of the model's logic and data.", v:22, e:6},
+    {id:"limits", t:"Brief advisors on the model's limitations", d:"Staff learn that scores are not determinative and must be questioned.", v:18, e:5},
+    {id:"purpose", t:"Limit data to defined purposes", d:"Student data is used only for advising and stored securely.", v:16, e:5, priv:18}
+  ];
+
+  var ROLES = ["Select an owner","PathAlert vendor","University data science team","Independent review committee","University communications office","Office of Student Advising","The AI system itself"];
+  var DUTIES = [
+    {id:"val", t:"Model validation", d:"Tests accuracy before each update"},
+    {id:"aud", t:"Performance auditing", d:"Checks outcomes across student groups"},
+    {id:"com", t:"Public communication", d:"Explains the system to students and families"},
+    {id:"app", t:"Appeal mechanism", d:"Reviews students' challenges to their label"}
+  ];
+
+  var AUDIT = [
+    {id:"none", t:"No scheduled audit", d:"Reviews happen only if problems are reported.", v:0},
+    {id:"year", t:"Once per academic year", d:"An annual review of outcomes.", v:8},
+    {id:"term", t:"Every semester", d:"Reviews each term, before scores are reused.", v:14},
+    {id:"update", t:"Every semester and before any model update", d:"Regular reviews plus checks before changes go live.", v:18}
+  ];
+
+  var DECISION = [
+    {id:"now", t:"Expand campus-wide this fall", d:"Roll out PathAlert with the current configuration to every college."},
+    {id:"staged", t:"Expand in stages with the refinements in place", d:"Start with two more colleges, with audits and appeal channels active."},
+    {id:"pilot", t:"Extend the pilot for one more semester", d:"Keep PathAlert in one college until independent review confirms the refinements work."}
+  ];
+
+  var CHECKS = {
+    c1:{q:"Checkpoint 1", opts:["Academic performance trend","Home ZIP code","Missed registration and aid deadlines","Course platform activity"], correct:1},
+    c2:{q:"Checkpoint 2", opts:["Sending a registration deadline reminder","Suggesting tutoring resources","Scholarship renewal decisions","Scheduling a check-in message"], correct:2},
+    c3:{q:"Checkpoint 3", opts:["With the AI system, since it produced the classification","With the university and the people who design, deploy, and oversee the system","With the students, since their data was used","With no one, since the score is only a statistical estimate"], correct:1}
+  };
+
+  var METERS = [
+    {id:"reach", l:"Early support reach", c:"var(--jade)"},
+    {id:"label", l:"Accurate labeling", c:"var(--cerulean)"},
+    {id:"fair",  l:"Fairness across groups", c:"var(--plum)"},
+    {id:"priv",  l:"Privacy protection", c:"#0f6fb8"},
+    {id:"open",  l:"Transparency", c:"var(--tangerine)"},
+    {id:"acct",  l:"Human accountability", c:"var(--orchid)"},
+    {id:"load",  l:"Advisor workload", c:"#8a7f95", load:true}
+  ];
+
+  var S;
+  function fresh(){
+    var inputs = {};
+    INPUTS.forEach(function(i){ inputs[i.id] = true; });
+    return {stage:0, max:0, inputs:inputs, thr:60, outreach:"auto", scholar:"auto",
+      transp:{}, gov:{val:"",aud:"",com:"",app:""}, audit:"none", decision:"",
+      checks:{c1:null,c2:null,c3:null}};
+  }
+
+  function $(s,r){ return (r||document).querySelector(s); }
+  function $all(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
+  function clamp(v){ return Math.max(0, Math.min(100, Math.round(v))); }
+  function el(tag, cls, html){ var e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e; }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+
+  /* ---------- Model ---------- */
+  function compute(){
+    var acc=30, gap=2, priv=0;
+    INPUTS.forEach(function(i){ if(S.inputs[i.id]){ acc+=i.acc; gap+=i.gap; priv+=i.priv; } });
+    acc = Math.min(95, acc);
+    var t = S.thr;
+    var reach = clamp(acc * (0.55 + (100 - t) / 100 * 0.6));
+    var falseFlags = (100 - acc) * 0.8 + (100 - t) * 0.7;
+    var label = clamp(100 - falseFlags);
+    var fair = clamp(100 - gap * 2);
+
+    var open = 0, effort = 0, privBoost = 0;
+    TRANSP.forEach(function(x){ if(S.transp[x.id]){ open += x.v; effort += x.e; if(x.priv) privBoost += x.priv; } });
+    var privacy = clamp(100 - priv * 3 + privBoost);
+
+    var o = OUTREACH.filter(function(x){return x.id===S.outreach;})[0];
+    var sc = SCHOLAR.filter(function(x){return x.id===S.scholar;})[0];
+    var acct = o.acc + sc.acc;
+    var assigned = 0, aiOwner = false;
+    DUTIES.forEach(function(d){ var r=S.gov[d.id]; if(r){ if(r==="The AI system itself"){ aiOwner=true; } else { assigned++; } } });
+    acct += assigned * 4;
+    if(S.gov.val && S.gov.aud && S.gov.val !== S.gov.aud && S.gov.aud !== "The AI system itself") acct += 6;
+    if(S.gov.aud === "PathAlert vendor") acct -= 4;
+    var au = AUDIT.filter(function(x){return x.id===S.audit;})[0];
+    acct += au.v * 0.9;
+    if(aiOwner) acct -= 12;
+    acct = clamp(acct);
+
+    var flagVolume = 100 - t;
+    var load = clamp(flagVolume * 1.35 * o.load + effort * 0.5 + (S.gov.app && S.gov.app!=="The AI system itself" ? 6 : 0));
+
+    var baseRate = Math.max(3, Math.min(90, (100 - t) * 0.6 + 5));
+    var rateA = Math.min(95, baseRate + gap * 0.5);
+    var rateB = baseRate;
+
+    return {reach:reach, label:label, fair:fair, priv:privacy, open:clamp(open), acct:acct, load:load,
+      rateA:Math.round(rateA), rateB:Math.round(rateB), acc:acc, gap:gap};
+  }
+
+  /* ---------- Rendering ---------- */
+  function buildRail(){
+    var rail = $("#rail"); rail.innerHTML="";
+    STAGES.forEach(function(name, i){
+      var b = el("button","", '<span class="n">'+(i+1)+'</span>'+name);
+      b.type="button";
+      b.setAttribute("aria-label","Step "+(i+1)+": "+name);
+      b.addEventListener("click", function(){ go(i); });
+      rail.appendChild(b);
+    });
+  }
+  function paintRail(){
+    $all("#rail button").forEach(function(b,i){
+      b.classList.toggle("current", i===S.stage);
+      b.classList.toggle("done", i<S.stage && i<=S.max);
+      b.disabled = i > S.max;
+      if(i===S.stage) b.setAttribute("aria-current","step"); else b.removeAttribute("aria-current");
+    });
+  }
+
+  function buildMeters(){
+    var m = $("#meters"); m.innerHTML="";
+    METERS.forEach(function(x){
+      var d = el("div","m"+(x.load?" load":""),
+        '<div class="ml"><span>'+x.l+(x.load?' <span class="hint">(higher is heavier)</span>':'')+'</span><em id="v_'+x.id+'">0</em></div>'+
+        '<div class="tr" role="progressbar" aria-label="'+x.l+'" aria-valuemin="0" aria-valuemax="100" id="pb_'+x.id+'"><div class="fi" id="f_'+x.id+'" style="background:'+x.c+';width:0"></div></div>');
+      m.appendChild(d);
+    });
+  }
+
+  function flagBars(target, r){
+    var box = $(target); if(!box) return;
+    box.innerHTML =
+      '<div class="fb"><div class="fl"><span>Flagged: students from lower-income ZIP codes</span><span>'+r.rateA+'%</span></div><div class="tr"><div class="fi" style="width:'+r.rateA+'%;background:var(--coral)"></div></div></div>'+
+      '<div class="fb"><div class="fl"><span>Flagged: all other students</span><span>'+r.rateB+'%</span></div><div class="tr"><div class="fi" style="width:'+r.rateB+'%;background:var(--cerulean)"></div></div></div>';
+  }
+
+  function update(){
+    var r = compute();
+    METERS.forEach(function(x){
+      var v = r[x.id];
+      $("#v_"+x.id).textContent = v;
+      $("#f_"+x.id).style.width = v + "%";
+      $("#pb_"+x.id).setAttribute("aria-valuenow", v);
+    });
+    flagBars("#flagsPanel", r);
+    flagBars("#flagsData", r);
+    flagBars("#flagsScore", r);
+  }
+
+  function buildInputs(){
+    var box = $("#inputs"); box.innerHTML="";
+    INPUTS.forEach(function(i){
+      var b = el("button","sw",'<span><span class="lbl">'+i.label+'</span><span class="tag">'+i.tag+'</span></span><span class="knob" aria-hidden="true"></span>');
+      b.type="button"; b.setAttribute("role","switch"); b.dataset.id=i.id;
+      b.addEventListener("click", function(){ S.inputs[i.id] = !S.inputs[i.id]; paintInputs(); update(); });
+      box.appendChild(b);
+    });
+  }
+  function paintInputs(){
+    $all("#inputs .sw").forEach(function(b){ b.setAttribute("aria-checked", S.inputs[b.dataset.id] ? "true":"false"); });
+  }
+
+  function buildRadio(containerSel, list, key){
+    var box = $(containerSel); box.innerHTML="";
+    list.forEach(function(x){
+      var b = el("button","opt round",'<span class="mk" aria-hidden="true"></span><span><b>'+x.t+'</b><span class="d">'+x.d+'</span></span>');
+      b.type="button"; b.setAttribute("role","radio"); b.dataset.id=x.id;
+      b.addEventListener("click", function(){ S[key]=x.id; paintRadio(containerSel,key); update(); paintNeeds(); });
+      box.appendChild(b);
+    });
+  }
+  function paintRadio(containerSel,key){
+    $all(containerSel+" .opt").forEach(function(b){ b.setAttribute("aria-checked", S[key]===b.dataset.id ? "true":"false"); });
+  }
+
+  function buildTransp(){
+    var box = $("#transp"); box.innerHTML="";
+    TRANSP.forEach(function(x){
+      var b = el("button","opt",'<span class="mk" aria-hidden="true"></span><span><b>'+x.t+'</b><span class="d">'+x.d+'</span></span>');
+      b.type="button"; b.dataset.id=x.id;
+      b.addEventListener("click", function(){ S.transp[x.id]=!S.transp[x.id]; paintTransp(); update(); });
+      box.appendChild(b);
+    });
+  }
+  function paintTransp(){
+    $all("#transp .opt").forEach(function(b){ b.setAttribute("aria-pressed", S.transp[b.dataset.id] ? "true":"false"); });
+  }
+
+  function buildGov(){
+    var box = $("#gov"); box.innerHTML="";
+    DUTIES.forEach(function(d){
+      var row = el("div","govrow");
+      var id = "sel_"+d.id;
+      row.innerHTML = '<label for="'+id+'"><b>'+d.t+'</b><span>'+d.d+'</span></label>';
+      var s = document.createElement("select"); s.id=id;
+      ROLES.forEach(function(r,i){ var o=document.createElement("option"); o.value = i===0 ? "" : r; o.textContent=r; s.appendChild(o); });
+      s.addEventListener("change", function(){ S.gov[d.id]=s.value; update(); });
+      row.appendChild(s); box.appendChild(row);
+    });
+  }
+  function paintGov(){ DUTIES.forEach(function(d){ $("#sel_"+d.id).value = S.gov[d.id]; }); }
+
+  function buildChecks(){
+    Object.keys(CHECKS).forEach(function(k){
+      var wrap = $('[data-check="'+k+'"]');
+      var box = $(".opts", wrap); box.innerHTML="";
+      CHECKS[k].opts.forEach(function(o, i){
+        var b = el("button","opt round",'<span class="mk" aria-hidden="true"></span><span><b>'+o+'</b></span>');
+        b.type="button"; b.dataset.i=i;
+        b.addEventListener("click", function(){
+          if(S.checks[k]!==null) return;
+          S.checks[k]=i; paintChecks(); paintNeeds();
+        });
+        box.appendChild(b);
+      });
+    });
+  }
+  function paintChecks(){
+    Object.keys(CHECKS).forEach(function(k){
+      var wrap = $('[data-check="'+k+'"]');
+      var ans = S.checks[k];
+      $all(".opt", wrap).forEach(function(b){
+        var i = +b.dataset.i;
+        b.setAttribute("aria-pressed", ans===i ? "true":"false");
+        b.disabled = ans!==null;
+      });
+      $(".recorded", wrap).classList.toggle("show", ans!==null);
+    });
+  }
+
+  function requirementMet(req){
+    if(!req) return true;
+    if(req==="decision") return !!S.decision;
+    return S.checks[req]!==null;
+  }
+  function paintNeeds(){
+    $all("[data-requires]").forEach(function(b){ b.disabled = !requirementMet(b.dataset.requires); });
+    $all("[data-need]").forEach(function(n){ n.style.display = requirementMet(n.dataset.need) ? "none" : ""; });
+  }
+
+  function go(i){
+    if(i<0 || i>=STAGES.length || i>S.max) return;
+    S.stage = i;
+    $all(".stage").forEach(function(s){ s.classList.toggle("active", +s.dataset.stage===i); });
+    if(i===6) buildSummary();
+    paintRail();
+    var top = document.querySelector(".rail");
+    if(top && top.scrollIntoView) top.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+  function next(){
+    var n = S.stage+1;
+    if(n>S.max) S.max=n;
+    go(n);
+  }
+
+  /* ---------- Summary ---------- */
+  function nameOf(list,id){ var f=list.filter(function(x){return x.id===id;})[0]; return f?f.t:""; }
+  function logData(){
+    var r = compute();
+    var kept = INPUTS.filter(function(i){return S.inputs[i.id];}).map(function(i){return i.label;});
+    var removed = INPUTS.filter(function(i){return !S.inputs[i.id];}).map(function(i){return i.label;});
+    var tr = TRANSP.filter(function(x){return S.transp[x.id];}).map(function(x){return x.t;});
+    var gov = DUTIES.map(function(d){ return {duty:d.t, owner:S.gov[d.id] || "Not assigned"}; });
+    var checks = Object.keys(CHECKS).map(function(k){
+      var a=S.checks[k]; return {q:CHECKS[k].q, answer: a===null ? "Not answered" : CHECKS[k].opts[a], ok: a===CHECKS[k].correct};
+    });
+    return {r:r, kept:kept, removed:removed, tr:tr, gov:gov, checks:checks};
+  }
+  function list(arr, empty){ return arr.length ? '<ul>'+arr.map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+'</ul>' : '<p class="hint">'+empty+'</p>'; }
+  function buildSummary(){
+    var L = logData(), r=L.r;
+    var box = $("#summary");
+    box.innerHTML =
+      '<div class="tile"><h3><span class="dot" style="background:var(--jade)"></span>Data inputs kept</h3>'+list(L.kept,"No inputs kept.")+'</div>'+
+      '<div class="tile"><h3><span class="dot" style="background:var(--coral)"></span>Data inputs removed</h3>'+list(L.removed,"No inputs removed.")+'</div>'+
+      '<div class="tile"><h3><span class="dot" style="background:var(--tangerine)"></span>Score use</h3>'+
+        '<div class="rec"><span>High-risk threshold</span><b>'+S.thr+'</b></div>'+
+        '<div class="rec"><span>Outreach</span><b>'+esc(nameOf(OUTREACH,S.outreach))+'</b></div>'+
+        '<div class="rec"><span>Scholarships</span><b>'+esc(nameOf(SCHOLAR,S.scholar))+'</b></div></div>'+
+      '<div class="tile"><h3><span class="dot" style="background:var(--cerulean)"></span>Transparency measures</h3>'+list(L.tr,"No transparency measures selected.")+'</div>'+
+      '<div class="tile"><h3><span class="dot" style="background:var(--plum)"></span>Governance</h3>'+
+        L.gov.map(function(g){return '<div class="rec"><span>'+esc(g.duty)+'</span><b>'+esc(g.owner)+'</b></div>';}).join("")+
+        '<div class="rec"><span>Audit schedule</span><b>'+esc(nameOf(AUDIT,S.audit))+'</b></div></div>'+
+      '<div class="tile"><h3><span class="dot" style="background:var(--orchid)"></span>Recommendation</h3><p><b>'+esc(nameOf(DECISION,S.decision))+'</b></p>'+
+        '<div class="rec"><span>Flagged: lower-income ZIP codes</span><b>'+r.rateA+'%</b></div>'+
+        '<div class="rec"><span>Flagged: all other students</span><b>'+r.rateB+'%</b></div></div>'+
+      '<div class="tile" style="grid-column:1/-1"><h3><span class="dot" style="background:var(--yellow);box-shadow:0 0 0 1.5px var(--ink)"></span>Checkpoint record</h3>'+
+        L.checks.map(function(c){return '<div class="rec"><span><b>'+c.q+':</b> '+esc(c.answer)+'</span><span class="pill '+(c.ok?'ok':'no')+'">'+(c.ok?'Recorded as correct':'Recorded as incorrect')+'</span></div>';}).join("")+'</div>';
+  }
+  function logText(){
+    var L = logData(), r=L.r;
+    var lines = [];
+    lines.push("AI Ethics Review Lab: Decision Log (AIA2100 Module 3 Practice Activity)");
+    lines.push("");
+    lines.push("Data inputs kept: " + (L.kept.join("; ") || "None"));
+    lines.push("Data inputs removed: " + (L.removed.join("; ") || "None"));
+    lines.push("High-risk threshold: " + S.thr);
+    lines.push("Outreach: " + nameOf(OUTREACH,S.outreach));
+    lines.push("Scholarships: " + nameOf(SCHOLAR,S.scholar));
+    lines.push("Transparency measures: " + (L.tr.join("; ") || "None"));
+    L.gov.forEach(function(g){ lines.push(g.duty + ": " + g.owner); });
+    lines.push("Audit schedule: " + nameOf(AUDIT,S.audit));
+    lines.push("Recommendation: " + nameOf(DECISION,S.decision));
+    lines.push("");
+    lines.push("System readout: Early support reach " + r.reach + ", Accurate labeling " + r.label + ", Fairness across groups " + r.fair + ", Privacy protection " + r.priv + ", Transparency " + r.open + ", Human accountability " + r.acct + ", Advisor workload " + r.load);
+    lines.push("Flag rates: lower-income ZIP codes " + r.rateA + "%, all other students " + r.rateB + "%");
+    lines.push("");
+    L.checks.forEach(function(c){ lines.push(c.q + ": " + c.answer + " (" + (c.ok ? "recorded as correct" : "recorded as incorrect") + ")"); });
+    return lines.join("\n");
+  }
+  function toast(msg){ var t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(function(){t.classList.remove("show");},2200); }
+  function copyLog(){
+    var text = logText();
+    function fallback(){
+      var ta=document.createElement("textarea"); ta.value=text; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      var ok=false; try{ ok=document.execCommand("copy"); }catch(e){ ok=false; }
+      document.body.removeChild(ta);
+      toast(ok ? "Decision log copied" : "Copy is blocked here. Select the summary text to copy it.");
+    }
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(function(){ toast("Decision log copied"); }, fallback);
+    } else { fallback(); }
+  }
+
+  /* ---------- Init ---------- */
+  function paintAll(){
+    paintInputs(); paintRadio("#outreach","outreach"); paintRadio("#scholar","scholar");
+    paintRadio("#audit","audit"); paintRadio("#decision","decision");
+    paintTransp(); paintGov(); paintChecks(); paintNeeds(); update();
+    $("#thr").value = S.thr; $("#thrOut").textContent = S.thr;
+  }
+  function init(){
+    S = fresh();
+    buildRail(); buildMeters(); buildInputs();
+    buildRadio("#outreach", OUTREACH, "outreach");
+    buildRadio("#scholar", SCHOLAR, "scholar");
+    buildRadio("#audit", AUDIT, "audit");
+    buildRadio("#decision", DECISION, "decision");
+    buildTransp(); buildGov(); buildChecks();
+
+    $("#thr").addEventListener("input", function(e){ S.thr = +e.target.value; $("#thrOut").textContent = S.thr; update(); });
+    $all("[data-next]").forEach(function(b){ b.addEventListener("click", function(){ if(!b.disabled) next(); }); });
+    $all("[data-prev]").forEach(function(b){ b.addEventListener("click", function(){ go(S.stage-1); }); });
+    $("#copyLog").addEventListener("click", copyLog);
+    $("#restart").addEventListener("click", function(){ S = fresh(); paintAll(); go(0); });
+
+    paintAll(); go(0);
+  }
+  document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>
